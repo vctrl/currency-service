@@ -34,6 +34,9 @@ func main() {
 	}
 
 	db, _, err := repository.NewDatabaseConnection(cfg.Database)
+	if err != nil {
+		log.Fatalf("error init database connection: %v", err)
+	}
 	//if err := migrations.RunPgMigrations(dsn, cfg.Database.MigrationsPath); err != nil {
 	//	log.Fatalf("RunPgMigrations failed: %v", err)
 	//}

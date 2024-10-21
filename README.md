@@ -40,7 +40,6 @@ The services can be orchestrated using Docker Compose, with dependencies on a Po
 
 ### Prerequisites
 - Docker and Docker Compose should be installed on the host machine.
-- Ensure public API credentials (if needed) and any environment variables are set in the configuration files.
 
 ### Running the Services
 
