@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Вытащить в internal
+
 type ServiceConfig struct {
 	ServerPort string `mapstructure:"server_port"`
 }

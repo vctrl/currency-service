@@ -1,5 +1,7 @@
 package main
 
+// Вытащил в корень проекта в ./scripts
+
 import (
 	"context"
 	"database/sql"

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vctrl/currency-service/gateway/internal/pkg/auth"
+	"github.com/vctrl/currency-service/gateway/internal/clients/auth"
 
 	"go.uber.org/zap"
 
@@ -12,12 +12,12 @@ import (
 )
 
 type Authorization struct {
-	authClient auth.Client
+	authClient *auth.Client //todo interface
 	skipper    func(*gin.Context) bool
 	logger     *zap.Logger
 }
 
-func NewAuthorization(authClient auth.Client, skipper func(*gin.Context) bool, logger *zap.Logger) Authorization {
+func NewAuthorization(authClient *auth.Client, skipper func(*gin.Context) bool, logger *zap.Logger) Authorization {
 	return Authorization{
 		authClient: authClient,
 		skipper:    skipper,

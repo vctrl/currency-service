@@ -12,6 +12,8 @@ import (
 	"go.uber.org/zap"
 )
 
+// Не делать лишние поля, функции, типы, константы и методы публичными.
+
 type CurrencyWorker struct {
 	CurrencyService service.CurrencyService
 	Cron            *cron.Cron

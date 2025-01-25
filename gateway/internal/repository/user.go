@@ -21,7 +21,7 @@ type UserRepository struct {
 	mu    *sync.RWMutex
 }
 
-func NewUserRepository() UserRepository {
+func NewUser() UserRepository {
 	return UserRepository{
 		users: make(map[string]User),
 		mu:    &sync.RWMutex{},

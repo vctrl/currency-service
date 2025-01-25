@@ -30,6 +30,7 @@ type CurrencyRate struct {
 	Rate float32
 }
 
+// TODO не должно быть частью репозитория!
 func NewDatabaseConnection(cfg config.DatabaseConfig) (*sql.DB, string, error) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
@@ -48,7 +49,7 @@ func NewDatabaseConnection(cfg config.DatabaseConfig) (*sql.DB, string, error) {
 	return db, dsn, nil
 }
 
-func NewExchangeRateRepository(db *sql.DB) (ExchangeRateRepository, error) {
+func NewExchangeRate(db *sql.DB) (ExchangeRateRepository, error) {
 	return ExchangeRateRepository{
 		DB: db,
 	}, nil

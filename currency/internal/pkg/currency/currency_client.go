@@ -15,13 +15,14 @@ import (
 	"go.uber.org/zap"
 )
 
+// Вытащить в clients/currency
 type CurrencyClient struct {
 	baseURL    *url.URL
 	httpClient *http.Client
 	logger     *zap.Logger
 }
 
-func NewCurrencyClient(cfg config.APIConfig, logger *zap.Logger) (CurrencyClient, error) {
+func NewClient(cfg config.APIConfig, logger *zap.Logger) (CurrencyClient, error) {
 	baseURL, err := url.Parse(cfg.BaseURL)
 	if err != nil {
 		return CurrencyClient{}, fmt.Errorf("invalid base URL: %w", err)

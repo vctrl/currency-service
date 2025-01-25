@@ -14,7 +14,7 @@ type CurrencyService struct {
 	currencyClient currency.CurrencyServiceClient
 }
 
-func NewCurrencyService(currencyClient currency.CurrencyServiceClient) CurrencyService {
+func NewCurrency(currencyClient currency.CurrencyServiceClient) CurrencyService {
 	return CurrencyService{
 		currencyClient: currencyClient,
 	}

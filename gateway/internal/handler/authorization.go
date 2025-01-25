@@ -5,14 +5,15 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/vctrl/currency-service/gateway/internal/clients/auth"
 	"github.com/vctrl/currency-service/gateway/internal/dto"
-	"github.com/vctrl/currency-service/gateway/internal/pkg/auth"
+	innnerErrors "github.com/vctrl/currency-service/gateway/internal/errors"
 	"github.com/vctrl/currency-service/gateway/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) Register(c *gin.Context) {
+func (s *controller) Register(c *gin.Context) {
 	var req dto.RegisterRequest
 	err := c.BindJSON(&req)
 	if err != nil {
@@ -20,7 +21,7 @@ func (s *Server) Register(c *gin.Context) {
 		return
 	}
 
-	err = s.AuthService.Register(req)
+	err = s.authService.Register(req)
 	if err != nil {
 		s.handleError(c, err)
 		return
@@ -29,7 +30,7 @@ func (s *Server) Register(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
-func (s *Server) Login(c *gin.Context) {
+func (s *controller) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	err := c.BindJSON(&req)
 	if err != nil {
@@ -37,7 +38,7 @@ func (s *Server) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := s.AuthService.Login(c.Request.Context(), req.Username, req.Password)
+	token, err := s.authService.Login(c.Request.Context(), req.Username, req.Password)
 	if err != nil {
 		s.handleError(c, err)
 		return
@@ -46,14 +47,14 @@ func (s *Server) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-func (s *Server) Logout(c *gin.Context) {
+func (s *controller) Logout(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Authorization token is required"})
 		return
 	}
 
-	err := s.AuthService.Logout(token)
+	err := s.authService.Logout(token)
 	if err != nil {
 		s.handleError(c, err)
 		return
@@ -63,7 +64,14 @@ func (s *Server) Logout(c *gin.Context) {
 }
 
 // todo move errors to separate package
-func (s *Server) handleError(c *gin.Context, err error) {
+func (s *controller) handleError(c *gin.Context, err error) {
+	var nferr innnerErrors.NotFoundError
+	if errors.As(err, &nferr) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": nferr.Error(),
+		})
+	}
+
 	log.Printf("internal error: %v", err)
 	switch {
 	case errors.Is(err, repository.ErrUserNotFound):

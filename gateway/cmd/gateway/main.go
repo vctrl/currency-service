@@ -12,10 +12,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/vctrl/currency-service/gateway/internal/clients/auth"
 	"github.com/vctrl/currency-service/gateway/internal/config"
 	"github.com/vctrl/currency-service/gateway/internal/handler"
 	"github.com/vctrl/currency-service/gateway/internal/middleware"
-	"github.com/vctrl/currency-service/gateway/internal/pkg/auth"
 	"github.com/vctrl/currency-service/gateway/internal/repository"
 	"github.com/vctrl/currency-service/gateway/internal/service"
 	"github.com/vctrl/currency-service/pkg/grpc_client"
@@ -26,39 +26,45 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err.Error())
+	}
+}
+
+func run() error {
 	configPath := flag.String("config", "./config", "path to the config file")
 
 	flag.Parse()
 
 	cfg, err := config.LoadConfig(*configPath)
 	if err != nil {
-		log.Fatalf("Error loading config: %v", err)
+		return fmt.Errorf("load config: %w", err)
 	}
-
-	fmt.Println(cfg)
-
-	router := gin.New()
 
 	logger, err := zap.NewProduction()
 	if err != nil {
-		log.Fatalf("init logger: %w", err)
+		return fmt.Errorf("init logger: %w", err)
 	}
 
+	logger.Info("Server initializing with config", zap.Any("config", cfg))
+
+	router := gin.New()
 	router.Use(ginzap.Ginzap(logger, time.RFC3339, true))
 	router.Use(ginzap.RecoveryWithZap(logger, true))
 
 	// auth middleware
 	authClient, err := auth.NewAuthClient(cfg.Auth)
 	if err != nil {
-		log.Fatalf("auth.NewAuthClient: %s", err)
+		return fmt.Errorf("auth.NewAuthClient: %w", err)
 	}
 
-	if resp, err := authClient.Ping(); err != nil {
-		log.Fatalf("authClient.Ping: %s", err)
-	} else {
-		if resp != "pong" {
-			log.Fatalf("auth client answered with invalid response: %s", resp)
-		}
+	resp, err := authClient.Ping()
+	if err != nil {
+		return fmt.Errorf("authClient.Ping: %w", err)
+	}
+
+	if resp != "pong" {
+		return fmt.Errorf("auth client answered with invalid response: %w", err)
 	}
 
 	authMiddleware := middleware.NewAuthorization(authClient, shouldSkipAuthMiddleware, logger)
@@ -66,26 +72,31 @@ func main() {
 
 	currencyClient, conn, err := grpc_client.NewCurrencyServiceClient(cfg.GRPC.CurrencyServiceURL)
 	if err != nil {
-		log.Fatalf("can't create currency service client: %v", err)
+		return fmt.Errorf("grpc_client.NewCurrencyServiceClient: %w", err)
 	}
 
 	defer func() {
 		if err := conn.Close(); err != nil {
-			// todo
+			logger.Warn("Cannot close GRPC Client for auth service", zap.Error(err))
 		}
 	}()
 
-	userRepo := repository.NewUserRepository()
-	authService := service.NewAuthService(authClient, userRepo)
-	currencyService := service.NewCurrencyService(currencyClient)
+	/*
+		userRepo := user.NewRepository()
+		authService := auuth.NewService(authClient, userRepo)
+		currencyService := currency.NewService(currencyClient)
+	*/
+
+	userRepo := repository.NewUser()
+	authService := service.NewAuth(authClient, userRepo)
+	currencyService := service.NewCurrency(currencyClient)
 
 	srv := &http.Server{
 		Addr:    cfg.Server.Port,
 		Handler: router,
 	}
 
-	server := handler.NewServer(authService, currencyService, router, logger)
-	server.RegisterRoutes()
+	handler.RegisterRoutes(authService, currencyService, router, logger)
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -97,16 +108,16 @@ func main() {
 	defer stop()
 
 	<-ctx.Done()
-	stop()
 	log.Println("shutting down gracefully, press Ctrl+C again to force")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown: ", err)
+		return fmt.Errorf("shutdown: %w", err)
 	}
 
 	log.Println("Server exiting")
+	return nil
 }
 
 func shouldSkipAuthMiddleware(c *gin.Context) bool {

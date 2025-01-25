@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) GetCurrencyRates(c *gin.Context) {
+func (s *controller) GetCurrencyRates(c *gin.Context) {
 	var req dto.CurrencyRequest
 	err := c.BindQuery(&req)
 	if err != nil {
@@ -38,7 +38,7 @@ func (s *Server) GetCurrencyRates(c *gin.Context) {
 		DateTo:   dateTo,
 	}
 
-	data, err := s.CurrencyService.GetCurrencyRates(c.Request.Context(), parsedCurrencyRequest)
+	data, err := s.currencyService.GetCurrencyRates(c.Request.Context(), parsedCurrencyRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

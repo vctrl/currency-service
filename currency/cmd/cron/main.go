@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/vctrl/currency-service/currency/internal/pkg/config"
-	currencyClient "github.com/vctrl/currency-service/currency/internal/pkg/currency"
+	"github.com/vctrl/currency-service/currency/internal/pkg/currency"
 	"github.com/vctrl/currency-service/currency/internal/repository"
 	"github.com/vctrl/currency-service/currency/internal/service"
 	"github.com/vctrl/currency-service/currency/internal/worker"
@@ -18,6 +18,9 @@ import (
 
 	"github.com/robfig/cron/v3"
 )
+
+// TODO:
+// - Добавить run() error по аналогии с gateway
 
 func main() {
 	configPath := flag.String("config", "./config", "path to the config file")
@@ -36,17 +39,18 @@ func main() {
 	//	log.Fatalf("RunPgMigrations failed: %v", err)
 	//}
 
-	repo, err := repository.NewExchangeRateRepository(db)
+	repo, err := repository.NewExchangeRate(db)
 	if err != nil {
 		log.Fatalf("error creating repository: %v", err)
 	}
 
+	// Logger инициировать как можно раньше.
 	logger, err := zap.NewProduction()
 	if err != nil {
 		log.Fatalf("init logger: %w", err)
 	}
 
-	client, err := currencyClient.NewCurrencyClient(cfg.API, logger)
+	client, err := currency.NewClient(cfg.API, logger)
 	if err != nil {
 		log.Fatalf("error creating currency client: %v", err)
 	}
