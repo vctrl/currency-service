@@ -8,9 +8,9 @@ ARG BUILD_TARGET
 RUN go build -o /app/bin/app $BUILD_TARGET
 
 # Stage 2: Create a smaller image for running the binary
-FROM alpine:latest
-WORKDIR /root/
+#FROM alpine:latest
+FROM scratch
 
-COPY --from=builder /app/bin/app .
+COPY --from=builder /app/bin/app /
 
-ENTRYPOINT ["./app"]
+ENTRYPOINT ["/app"]

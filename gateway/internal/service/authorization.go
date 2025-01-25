@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/vctrl/currency-service/gateway/internal/dto"
-	"github.com/vctrl/currency-service/gateway/internal/pkg/auth"
 	"github.com/vctrl/currency-service/gateway/internal/repository"
 )
 
@@ -14,12 +13,17 @@ var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 )
 
+type authClientInterface interface {
+	GenerateToken(ctx context.Context, login string) (string, error)
+	ValidateToken(ctx context.Context, token string) error
+}
+
 type AuthService struct {
-	authClient auth.Client               // todo interface
+	authClient authClientInterface
 	userRepo   repository.UserRepository // todo interface
 }
 
-func NewAuthService(authClient auth.Client, userRepo repository.UserRepository) AuthService {
+func NewAuth(authClient authClientInterface, userRepo repository.UserRepository) AuthService {
 	return AuthService{
 		authClient: authClient,
 		userRepo:   userRepo,

@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+// Должна быть в dto
 const (
 	defaultBaseCurrency = "RUB"
 )

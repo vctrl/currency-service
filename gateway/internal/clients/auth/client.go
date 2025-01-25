@@ -34,12 +34,12 @@ type Client struct {
 	httpClient *http.Client
 }
 
-func NewAuthClient(cfg config.AuthConfig) (Client, error) { // todo pass config
+func NewAuthClient(cfg config.AuthConfig) (*Client, error) { // todo pass config
 	parsedURL, err := url.Parse(cfg.BaseURL)
 	if err != nil {
-		return Client{}, fmt.Errorf("invalid base URL: %w", err)
+		return nil, fmt.Errorf("invalid base URL: %w", err)
 	}
-	return Client{
+	return &Client{
 		baseURL: parsedURL,
 		httpClient: &http.Client{
 			Transport:     nil,

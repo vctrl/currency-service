@@ -7,16 +7,16 @@ package currency;
 option go_package = "pkg/currency";
 
 service CurrencyService {
-  rpc GetRate(RateRequest) returns (RateResponse);
+  rpc GetRate(GetRateRequest) returns (GetRateResponse);
 }
 
-message RateRequest {
+message GetRateRequest {
   string currency = 1;
   google.protobuf.Timestamp date_from = 2;
   google.protobuf.Timestamp date_to = 3;
 }
 
-message RateResponse {
+message GetRateResponse {
   string currency = 1;
   repeated RateRecord rates = 2;
 }
